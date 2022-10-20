@@ -21,7 +21,7 @@ df["ZE2020"]=df["ZE2020"].apply(lambda x: str(x).rjust(4,'0') if len(str(x))<4 e
 da = df.iloc[:,3:].groupby("LIBREG").mean()
 da = da.dropna(how = 'any')
 dat= da.T
-fig20=px.histogram(
+figChomageParRegion = px.histogram(
     dat,
     x=dat.index,
     y=dat.columns,
@@ -59,8 +59,9 @@ fichierJson = open("ze2020_2022.json")
 geojson = json.load(fichierJson)
 
 
-fig3 = px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.ze2020", locations='ZE2020', color='2003-T1',
-                           color_continuous_scale="Viridis",
+figCarte = px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.ze2020", locations='ZE2020', color='2003-T1',
+                           hover_name = 'LIBZE2020',
+                           color_continuous_scale="orrd",
                            range_color=(5, 12),
                            mapbox_style="carto-positron",
                            zoom=4, center = {"lat": 46.000, "lon": 2.00},
@@ -69,7 +70,7 @@ fig3 = px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.ze20
                           )
 
 
-fig5=px.line(
+figTimeline=px.line(
     x=pd.to_datetime(df.columns[5:]),
     markers=True,
     y=[df[df["LIBZE2020"]=="Avignon"].iloc[:,5:].iloc[0],
@@ -79,41 +80,63 @@ fig5=px.line(
 
 app=dash.Dash("TTTEEESSSSTT")
 app.layout=html.Div(children=[
-        html.H1(children="Nombre d'arbres",
+        html.H1(children="Le chomage en France",
                 id="titre",
                 style={
                     'textAlign': 'center',
                     'color': '#7fdbff'
                 }),
-        #dcc.Graph(
-        #    id="graph1",
-        #    figure=fig
-        #),
     html.H1(
-        children="Distrib"
+        children="Présentation"
     ),
-dcc.Graph(
-        id="graph20",
-        figure=fig20
-    ),
+html.Div(children=f'''
+                            Ce Dashboard a pour but de montrer le chomage en France par zone d'emplois (ZE), et son évolution entre 2003 et 2022, par trimestre.
+                            \n Les chiffres pour les Drom-Com n'apparaissent qu'après 2014.
+                            '''),
 
-    dcc.Dropdown(
+html.H2(
+        children="Carte du chômage en france"
+),
+dcc.Graph(
+        id="graphCarte",
+        figure=figCarte
+),
+html.Div(children=f'''
+                            Les zones les plus touchées par le chomage sont le nord est, région anciennement industrialisées qui peinent a réussir leurs transition dans l'économie tertiaire, et le sud ouest, très attractif, n'arrive pas a suirve l'arrivée massive de population active attiré par le tourisme.
+                            \n Il est possible de faire évoluer dans le temps la carte avec le slider Ci-dessus.
+                            '''),
+
+html.H2(
+        children="Somme des moyennes de chômage par Régions"
+),
+dcc.Graph(
+        id="graphChomageParRegion",
+        figure=figChomageParRegion
+),
+html.Div(children=f'''
+                            Ce diagramme permet de visualiser l'évolution du chommage dans chaque région.
+                            \n Glissez votre souris sur les courbes pour afficher les informations prévises
+                            '''),
+
+html.H2(
+        children="Pourcentage de Chomage a l'intérieur d'une région"
+),
+dcc.Graph(
+        id="graph21",
+        figure=fig21
+    ),
+dcc.Dropdown(
 
         id="dropdown_histo",
         options=[
             {"value": i, "label": i} for i in df["LIBREG"].dropna().unique()
         ],
         multi=True,
-        value=["ILE DE FRANCE", "OCCITANIE"]
 
-    ),
-dcc.Graph(
-        id="graph21",
-        figure=fig21
+        value=["ILE DE FRANCE", "OCCITANIE"]
     ),
 
     dcc.Slider(
-
         1, len(df.columns[5:]),
         step=1,
         id="slider_histo",
@@ -124,25 +147,24 @@ dcc.Graph(
         },
         updatemode="drag",
     ),
-dcc.Graph(
-        id="graph3",
-        figure=fig3
-    ),
+
+html.Div(children=f'''
+                            Ce diagame permet de comparer les zones d'emplois dans plusieurs régions en simultanés. L'axe des ordonées repsrésente le nombre de zone d'emploi d'un région dans l'intervalle de chomage désigné.
+                            '''),
+html.H2(
+        children="Répartition du nombre de zone d'emplois par régions"
+),
 dcc.Graph(
         id="graph2",
         figure=fig2
     ),
-    html.H1(
-        id="sous-titre",
-        children="Evolution temporelle"
-    ),
-    html.H1(
-        id="date_inter",
-        children="Entre l'année"
-    ),
+html.H2(
+     children="Répartition du nombre de zone d'emplois par régions"
+),
+
     dcc.Graph(
         id="timeline",
-        figure=fig5
+        figure=figTimeline
     ),
     dcc.Dropdown(
         id="emplacement_dropdown",
