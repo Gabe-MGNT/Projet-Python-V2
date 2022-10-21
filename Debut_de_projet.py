@@ -41,9 +41,6 @@ db = df.iloc[:,3:]
 db = db.dropna(how = 'any')
 dbt= db.T
 
-
-#numpy.logical_or(db['LIBREG'] == "ILE DE FRANCE",db['LIBREG'] == "OCCITANIE")
-
 fig21=px.histogram(
     db[np.logical_or(db['LIBREG'] == "ILE DE FRANCE",db['LIBREG'] == "OCCITANIE") ],
     x = "2003-T1",
@@ -161,6 +158,10 @@ dcc.Graph(
 html.H2(
      children="Répartition du nombre de zone d'emplois par régions"
 ),
+html.H2(
+    id="sous_titre_graph",
+     children="sous_titre_graph_desc"
+),
 
     dcc.Graph(
         id="timeline",
@@ -181,7 +182,7 @@ html.H2(
             marks=None,
             #marks=
             #{i: str(year) for i, year in enumerate(df['Arbre Exploitation - Planté le'].unique())},
-            value=[5,7],
+            value=[5,76],
             tooltip={"placement": "bottom", "always_visible": True}
     ),
     html.H1(
@@ -231,8 +232,7 @@ def update_histo(dropdown_value,slider_value):
 
 @app.callback(
     [Output(component_id="timeline", component_property="figure"),
-     Output(component_id="date_inter", component_property="children"),
-     Output(component_id="sous-titre", component_property="children")],
+     Output(component_id="sous_titre_graph", component_property="children")],
     [Input(component_id="slider",component_property="value"),
 Input(component_id="emplacement_dropdown",component_property="value")
      ],
@@ -274,10 +274,8 @@ def update_figure_timeline(input_value,drop_input):
         return [
             px.line(
             data_f,
-            # x=pd.to_datetime(df.columns[5 + input_value[0]:5 + input_value[1]]),
             x=data_f.index,
             y=drop_input,
-            # text=df.iloc[:, 5 + input_value[0]:5 + input_value[1]].iloc[0],
             markers=True,
             title="Evolution du taux d'emploi",
             labels={
@@ -289,8 +287,6 @@ def update_figure_timeline(input_value,drop_input):
         ).update_traces(textposition="top center")
         ,
     f'Evolution entre ({(df.columns[5+input_value[0]]).split(" ")[0]}) et ({(df.columns[5+input_value[1]]).split(" ")[0]})',
-        #f'Dans la ville de ({" ".join([ville for ville in drop_input])})'
-        f'Evolution du taux de chomage dans certaines villes'
     ]
 app.run_server(debug=True)
 
