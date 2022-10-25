@@ -14,6 +14,7 @@ from dash_bootstrap_templates import load_figure_template
 exc=pd.ExcelFile("chomage-zone-t1-2003-t2-2022.xlsx")
 df=pd.read_excel(exc,"txcho_ze",skiprows=[0,1,2,3,4])
 
+<<<<<<< Updated upstream
 load_figure_template("simplex")
 
 
@@ -45,6 +46,8 @@ fig2=px.histogram(
     df,
     x=["LIBREG"]
 )
+=======
+>>>>>>> Stashed changes
 df["ZE2020"]=df["ZE2020"].apply(lambda x: str(x).rjust(4,'0') if len(str(x))<4 else x)
 
 da = df.iloc[:,3:].groupby("LIBREG").mean()
@@ -52,6 +55,7 @@ da = da.dropna(how = 'any')
 dat= da.T
 figChomageParRegion = px.histogram(
     dat,
+    title="Evolution du chômage par région",
     x=dat.index,
     y=dat.columns,
     labels={
@@ -72,29 +76,30 @@ dbt= db.T
 
 fig21=px.bar(
     db[np.logical_or(db['LIBREG'] == "ILE DE FRANCE",db['LIBREG'] == "OCCITANIE") ],
+    title="Répartitions des zones d'emplois de régions en fonction du chomage",
     x = "2003-T1",
     barmode="overlay",
     color = "LIBREG"
 )
 
 
-
-
-
 fichierJson = open("ze2020_2022.json")
 geojson = json.load(fichierJson)
-
-
 figCarte = px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.ze2020", locations='ZE2020', color='2003-T1',
+                           title="Carte du chômage en France par zone d'emplois",
                            hover_name = 'LIBZE2020',
                            color_continuous_scale="orrd",
                            range_color=(5, 12),
                            mapbox_style="carto-positron",
                            zoom=4, center = {"lat": 46.000, "lon": 2.00},
                            opacity=0.5,
+<<<<<<< Updated upstream
                            labels={'2003-T1':'Année 2003 trimestre 1'},
                            #height=500,
                            #width=700,
+=======
+                           labels={'ZE2020':'Code zone d\'emploi:', '2003-T1':'Chomage par région (en %) '}
+>>>>>>> Stashed changes
                           )
 
 
@@ -185,7 +190,18 @@ dcc.Graph(
             }
         )
 ),
+<<<<<<< Updated upstream
 
+=======
+dcc.RangeSlider(
+        0, len(df.columns[5:]),
+            id="slider_carte",
+            step=1,
+            marks=None,
+            value=[76],
+            tooltip={"placement": "bottom", "always_visible": True}
+),
+>>>>>>> Stashed changes
 html.Div(children=f'''
                             Les zones les plus touchées par le chomage sont le nord est, région anciennement industrialisées qui peinent a réussir leurs transition dans l'économie tertiaire, et le sud ouest, très attractif, n'arrive pas a suirve l'arrivée massive de population active attiré par le tourisme.
                             \n Il est possible de faire évoluer dans le temps la carte avec le slider Ci-dessus.
@@ -243,18 +259,7 @@ html.Div(children=f'''
                             Ce diagame permet de comparer les zones d'emplois dans plusieurs régions en simultanés. L'axe des ordonées repsrésente le nombre de zone d'emploi d'un région dans l'intervalle de chomage désigné.
                             '''),
 html.H2(
-        children="Répartition du nombre de zone d'emplois par régions"
-),
-dcc.Graph(
-        id="graph2",
-        figure=fig2
-    ),
-html.H2(
      children="Répartition du nombre de zone d'emplois par régions"
-),
-html.H2(
-    id="sous_titre_graph",
-     children="sous_titre_graph_desc"
 ),
 
     dcc.Graph(
@@ -285,6 +290,26 @@ html.H2(
     ),
     ]
 )
+
+@app.callback(
+    Output(component_id="graphCarte",component_property="figure"),
+    [Input(component_id="slider_carte",component_property="value")]
+)
+def update_carte(slider_value):
+    list_temps = df.columns
+    x = list_temps[slider_value][0]
+
+    return px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.ze2020", locations='ZE2020', color=str(x),
+                           title="Carte du chômage en France par zone d'emplois",
+                           hover_name = 'LIBZE2020',
+                           color_continuous_scale="orrd",
+                           range_color=(5, 12),
+                           mapbox_style="carto-positron",
+                           zoom=4, center = {"lat": 46.000, "lon": 2.00},
+                           opacity=0.5,
+                           labels={'ZE2020':'Code zone d\'emploi:', '2003-T1':'Chomage par région (en %) '}
+                          )
+
 
 @app.callback(
     Output(component_id="graph21",component_property="figure"),
@@ -327,8 +352,7 @@ def update_histo(dropdown_value,slider_value):
 
 
 @app.callback(
-    [Output(component_id="timeline", component_property="figure"),
-     Output(component_id="sous_titre_graph", component_property="children")],
+    [Output(component_id="timeline", component_property="figure")],
     [Input(component_id="slider",component_property="value"),
 Input(component_id="emplacement_dropdown",component_property="value")
      ],
@@ -373,7 +397,7 @@ def update_figure_timeline(input_value,drop_input):
             x=data_f.index,
             y=drop_input,
             markers=True,
-            title="Evolution du taux d'emploi",
+            title=f'Evolution entre {(df.columns[5+input_value[0]]).split(" ")[0]} et {(df.columns[5+input_value[1]]).split(" ")[0]}',
             labels={
                 "x": "Années de relevé ",
                 "value": "Taux d'emploi (en %) ",
@@ -381,8 +405,6 @@ def update_figure_timeline(input_value,drop_input):
             }
 
         ).update_traces(textposition="top center")
-        ,
-    f'Evolution entre ({(df.columns[5+input_value[0]]).split(" ")[0]}) et ({(df.columns[5+input_value[1]]).split(" ")[0]})',
     ]
 app.run_server(debug=True)
 
