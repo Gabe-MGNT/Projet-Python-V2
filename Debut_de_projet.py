@@ -14,7 +14,6 @@ from dash_bootstrap_templates import load_figure_template
 exc=pd.ExcelFile("chomage-zone-t1-2003-t2-2022.xlsx")
 df=pd.read_excel(exc,"txcho_ze",skiprows=[0,1,2,3,4])
 
-<<<<<<< Updated upstream
 load_figure_template("simplex")
 
 
@@ -46,8 +45,6 @@ fig2=px.histogram(
     df,
     x=["LIBREG"]
 )
-=======
->>>>>>> Stashed changes
 df["ZE2020"]=df["ZE2020"].apply(lambda x: str(x).rjust(4,'0') if len(str(x))<4 else x)
 
 da = df.iloc[:,3:].groupby("LIBREG").mean()
@@ -93,13 +90,7 @@ figCarte = px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.
                            mapbox_style="carto-positron",
                            zoom=4, center = {"lat": 46.000, "lon": 2.00},
                            opacity=0.5,
-<<<<<<< Updated upstream
-                           labels={'2003-T1':'Année 2003 trimestre 1'},
-                           #height=500,
-                           #width=700,
-=======
                            labels={'ZE2020':'Code zone d\'emploi:', '2003-T1':'Chomage par région (en %) '}
->>>>>>> Stashed changes
                           )
 
 
@@ -190,9 +181,6 @@ dcc.Graph(
             }
         )
 ),
-<<<<<<< Updated upstream
-
-=======
 dcc.RangeSlider(
         0, len(df.columns[5:]),
             id="slider_carte",
@@ -201,7 +189,6 @@ dcc.RangeSlider(
             value=[76],
             tooltip={"placement": "bottom", "always_visible": True}
 ),
->>>>>>> Stashed changes
 html.Div(children=f'''
                             Les zones les plus touchées par le chomage sont le nord est, région anciennement industrialisées qui peinent a réussir leurs transition dans l'économie tertiaire, et le sud ouest, très attractif, n'arrive pas a suirve l'arrivée massive de population active attiré par le tourisme.
                             \n Il est possible de faire évoluer dans le temps la carte avec le slider Ci-dessus.
