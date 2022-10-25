@@ -8,9 +8,38 @@ import json
 import plotly.graph_objects as go
 import dash
 from dash import dcc, Output, Input
+import dash_bootstrap_components as dbc
+from dash_bootstrap_templates import load_figure_template
 
 exc=pd.ExcelFile("chomage-zone-t1-2003-t2-2022.xlsx")
 df=pd.read_excel(exc,"txcho_ze",skiprows=[0,1,2,3,4])
+
+load_figure_template("simplex")
+
+
+pie_df=df["LIBREG"].value_counts()
+fig_pie_hole=px.pie(
+    pie_df,
+    values=pie_df,
+    names=pie_df.index,
+    hole=.4,
+    labels={
+        "index":"Régions",
+        "values":"Nombre de villes"
+    },
+    #color_discrete_sequence=px.colors.sequential.Oranges,
+    title="Nombres de villes par régions (ou relevés par années)",
+).update_traces(
+    textposition='inside',
+    insidetextorientation='radial',
+    textinfo='label+value',
+    textfont_size=14,
+    marker=dict(
+        line=dict(color='#000000', width=1)
+    )
+).update_layout(
+    showlegend=False
+)
 
 fig2=px.histogram(
     df,
@@ -41,7 +70,7 @@ db = df.iloc[:,3:]
 db = db.dropna(how = 'any')
 dbt= db.T
 
-fig21=px.histogram(
+fig21=px.bar(
     db[np.logical_or(db['LIBREG'] == "ILE DE FRANCE",db['LIBREG'] == "OCCITANIE") ],
     x = "2003-T1",
     barmode="overlay",
@@ -63,7 +92,9 @@ figCarte = px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.
                            mapbox_style="carto-positron",
                            zoom=4, center = {"lat": 46.000, "lon": 2.00},
                            opacity=0.5,
-                           labels={'2003-T1':'Année 2003 trimestre 1'}
+                           labels={'2003-T1':'Année 2003 trimestre 1'},
+                           #height=500,
+                           #width=700,
                           )
 
 
@@ -83,6 +114,57 @@ app.layout=html.Div(children=[
                     'textAlign': 'center',
                     'color': '#7fdbff'
                 }),
+
+        html.Div(
+            children=[
+        html.Div(
+            children=dcc.Graph(
+        id="pie_count",
+        figure=fig_pie_hole
+         ),
+            style={'width':'30%',
+                   "display":"inline-block",
+                   "padding":"10px",
+                    #"box-shadow": "0 3px 10px rgb(0 0 0 / 0.2)",
+                   }
+        ),
+        html.Div(
+                 children=[
+                     html.H3(children="Jeu de données INSEE"),
+                     html.Hr(),
+                     html.H4(
+                         "Le taux de chômage entre 2003 et 2022 dans les régions françaises"
+                     ),
+                     html.Br(),
+                     html.P(
+                         "Ce Dashboard a pour but de montrer le chomage en France par zone d'emplois (ZE), et son évolution entre 2003 et 2022, par trimestre. Les chiffres pour les Drom-Com n'apparaissent qu'après 2014."
+                     )
+
+                 ],
+            style={
+                "width":"50%",
+                "padding":"20px",
+                "margin-left":"20px",
+                "margin-top":"120px",
+                "display":"inline-block",
+                "position":"absolute",
+                "width":"50%",
+                "height":"30%",
+                "background":  "#eee",
+                "border-radius":"20px",
+                "box-shadow ": "0 3px 10px rgb(0 0 0 / 0.2)",
+               }
+
+                )
+
+],
+            style={
+                "padding":"10",
+                "flex":"1"
+            }
+
+        ),
+
     html.H1(
         children="Présentation"
     ),
@@ -96,8 +178,14 @@ html.H2(
 ),
 dcc.Graph(
         id="graphCarte",
-        figure=figCarte
+        figure=figCarte,
+        config=dict(
+            {
+                'scrollZoom':False
+            }
+        )
 ),
+
 html.Div(children=f'''
                             Les zones les plus touchées par le chomage sont le nord est, région anciennement industrialisées qui peinent a réussir leurs transition dans l'économie tertiaire, et le sud ouest, très attractif, n'arrive pas a suirve l'arrivée massive de population active attiré par le tourisme.
                             \n Il est possible de faire évoluer dans le temps la carte avec le slider Ci-dessus.
@@ -106,10 +194,16 @@ html.Div(children=f'''
 html.H2(
         children="Somme des moyennes de chômage par Régions"
 ),
-dcc.Graph(
+
+    html.Div(
+children=dcc.Graph(
         id="graphChomageParRegion",
         figure=figChomageParRegion
 ),
+        style={
+            "padding":'50px'
+        }
+    ),
 html.Div(children=f'''
                             Ce diagramme permet de visualiser l'évolution du chommage dans chaque région.
                             \n Glissez votre souris sur les courbes pour afficher les informations prévises
@@ -207,7 +301,7 @@ def update_histo(dropdown_value,slider_value):
          return px.histogram(
              db[db["LIBREG"].isin(list_reg)],
              x=annee,
-             barmode="relative",
+             barmode="group",
              color="LIBREG"
          ).add_annotation(
         text="Pas de données disponibles pour ces valeurs demandées",
@@ -222,10 +316,12 @@ def update_histo(dropdown_value,slider_value):
     return px.histogram(
             db[db["LIBREG"].isin(list_reg)],
             x=annee,
-            barmode="relative",
+            barmode="group",
             color="LIBREG"
         ).update_xaxes(
             range=[0,db[db["LIBREG"].isin(list_reg)][annee].max()+5]
+    ).update_layout(
+        bargap=0.35
     )
 
 
