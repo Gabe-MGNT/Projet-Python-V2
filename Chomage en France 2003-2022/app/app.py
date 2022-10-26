@@ -11,7 +11,7 @@ from dash import dcc, Output, Input
 import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
 
-exc=pd.ExcelFile("chomage-zone-t1-2003-t2-2022.xlsx")
+exc=pd.ExcelFile("data/chomage-zone-t1-2003-t2-2022.xlsx")
 df=pd.read_excel(exc,"txcho_ze",skiprows=[0,1,2,3,4])
 
 load_figure_template("simplex")
@@ -80,7 +80,7 @@ fig21=px.bar(
 )
 
 
-fichierJson = open("ze2020_2022.json")
+fichierJson = open("data/ze2020_2022.json")
 geojson = json.load(fichierJson)
 figCarte = px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.ze2020", locations='ZE2020', color='2003-T1',
                            title="Carte du chômage en France par zone d'emplois",
