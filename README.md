@@ -1,8 +1,13 @@
 # Projet-Python-V2
 ![GitHub contributors](https://img.shields.io/github/contributors/Gabe-MGNT/Projet-Python-V2?label=Contributeur)
 
+---
+# Sommaire :
 1. [Guide Utilisateur ](#user)
 2. [Analyse résultat ](#analyse)
+3. [Guide développeur ](#dev)
+---
+<br>
 
 <a name="user"></a>
 ## Guide Utilisateur
@@ -40,6 +45,8 @@ $ python main.py
 ### Utilisation
 <p>Le projet vous permet d'intéragir avec différents graphiques.</p>
 
+---
+
 <a name="analyse"></a>
 ## Analyse des résultats
 <p>Le chomage de manière générale semble n'avoir fait qu'augmenter jusqu'à 2018 pour redescendre en 2020.</p>
@@ -48,6 +55,8 @@ $ python main.py
 <p>De plus la carte permet de voir que les régions les plus affectées en temps normal se situe en dehors de la couronne parisienne</p>
 <p>Par contre, lors du COVID c'est finalement cette couronne parisienne qui a été le plus touché.</p>
 
+---
+<a name="dev"></a>
 ## Guide développeur
 
 <p>

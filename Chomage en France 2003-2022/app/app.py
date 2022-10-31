@@ -37,7 +37,7 @@ fig_pie_hole=px.pie(
         "index":"Régions",
         "values":"Nombre de villes"
     },
-    title="Nombres de villes par régions (ou relevés par années)",
+    title="Nombres de villes par régions (ou nombre de relevés par villes)",
 ).update_traces(
     textposition='inside',
     insidetextorientation='radial',
@@ -86,11 +86,11 @@ db = df.iloc[:,3:]
 db = db.dropna(how = 'any')
 dbt= db.T
 fig21=px.bar(
-    db[np.logical_or(db['LIBREG'] == "ILE DE FRANCE",db['LIBREG'] == "OCCITANIE") ],
-    title="Répartitions des zones d'emplois de régions en fonction du chomage",
-    x = "2003-T1",
-    barmode="overlay",
-    color = "LIBREG"
+    #db[np.logical_or(db['LIBREG'] == "ILE DE FRANCE",db['LIBREG'] == "OCCITANIE") ],
+    #title="Répartitions des zones d'emplois de régions en fonction du chomage",
+    #x = "2003-T1",
+    #barmode="overlay",
+    #color = "LIBREG"
 )
 
 
@@ -103,7 +103,12 @@ Création de la carte choroplèthe du taux de chomage par région, avec :
 df["ZE2020"]=df["ZE2020"].apply(lambda x: str(x).rjust(4,'0') if len(str(x))<4 else x)
 fichierJson = open("data/ze2020_2022.json")
 geojson = json.load(fichierJson)
-figCarte = px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.ze2020", locations='ZE2020', color='2003-T1',
+figCarte = px.choropleth_mapbox(
+                           df,
+                           geojson=geojson,
+                           featureidkey = "properties.ze2020",
+                           locations='ZE2020',
+                           color='2003-T1',
                            title="Carte du chômage en France par zone d'emplois",
                            hover_name = 'LIBZE2020',
                            color_continuous_scale="orrd",
@@ -111,7 +116,7 @@ figCarte = px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.
                            mapbox_style="carto-positron",
                            zoom=4, center = {"lat": 46.000, "lon": 2.00},
                            opacity=0.5,
-                           labels={'ZE2020':'Code zone d\'emploi:', '2003-T1':'Chomage par région (en %) '}
+                           labels={'ZE2020':'Code zone d\'emploi:'}
                           )
 
 
@@ -135,9 +140,10 @@ app.layout=html.Div(children=[
                 id="titre",
                 style={
                     'textAlign': 'center',
-                    'color': '#7fdbff'
+                    'color': 'black'
                 }),
-
+    html.Br(),
+html.H2(children="Présentation du jeu de données"),
         html.Div(
             children=[
         html.Div(
@@ -183,24 +189,17 @@ app.layout=html.Div(children=[
 ],
             style={
                 "padding":"10",
-                "flex":"1"
+                "flex":"1",
+
             }
 
         ),
-
-    html.H1(
-        children="Présentation"
-    ),
-html.Div(children=f'''
-                            Ce Dashboard a pour but de montrer le chomage en France par zone d'emplois (ZE), et son évolution entre 2003 et 2022, par trimestre.
-                            \n Les chiffres pour les Drom-Com n'apparaissent qu'après 2014.
-                            '''),
-
+html.Hr(),
 html.H2(
-        children="Carte du chômage en france"
+        children="Localisation du chômage en France"
 ),
     html.Div(
-        children="L'actualisation de la carte prend du temps au vue de sa complexité, il faut donc attendre un peu avant de voir les modifications visuellement"
+        children="Afin de mieux comprendre le phénomène du chômage, on peut d'abord voir sa répartition dans les régions françaises à l'aide d'une carte. (L'actualisation de la carte prend du temps au vue de sa complexité, il faut donc attendre un peu avant de voir les modifications visuellement)"
     ),
 dcc.Graph(
         id="graphCarte",
@@ -215,17 +214,23 @@ dcc.Slider(
         0, len(df.columns[4:])-1,
             id="slider_carte",
             step=1,
-            marks=None,
+            marks={
+                i: str(2003 + i // 4) for i in range(0, len(df.columns[4:]) - 1, 4)
+            },
             value=76,
-            tooltip={"placement": "bottom", "always_visible": True}
 ),
+html.Br(),
 html.Div(children=f'''
                             Les zones les plus touchées par le chomage sont le nord est, région anciennement industrialisées qui peinent a réussir leurs transition dans l'économie tertiaire, et le sud ouest, très attractif, n'arrive pas a suivre l'arrivée massive de population active attiré par le tourisme.
-                            \n Il est possible de faire évoluer dans le temps la carte avec le slider ci-dessous.
-                            '''),
+                            \n Il est possible de faire évoluer dans le temps la carte avec le slider ci-dessus.
+                            ''',  style={
+        "padding":"20px"
+}),
 
+html.Br(),
+html.Hr(),
 html.H2(
-        children="Somme des moyennes de chômage par Régions"
+        children="Évolution générale du taux de chômage en France"
 ),
 
     html.Div(
@@ -234,20 +239,32 @@ children=dcc.Graph(
         figure=figChomageParRegion
 ),
         style={
-            "padding":'50px'
+            "padding":'50px',
         }
     ),
 html.Div(children=f'''
                             Ce diagramme permet de visualiser l'évolution du chommage dans chaque région, mais aussi de manière générale.
+                            Ici l'impact de la crise de 2008 est notable avec une forte hausse dans les années suivantes ; la décroissance qui suit montre une stabilité du marché du travail en France. Puis vient la crise du COVID en 2020, soit le moment où un énorme pic apparaît.
                             \n De plus amples informations peuvent être obtenues en glissant votre souris sur les barres pour afficher les informations.
-                            '''),
+                            ''',
+         style={
+        "padding":"20px"
+}),
 
+html.Br(),
+html.Hr(),
 html.H2(
-        children="Distribution du taux de chômage de certaines régions"
+        children="Distribution du taux de chômage"
 ),
-dcc.Graph(
+
+    html.Div(
+children=dcc.Graph(
         id="graph21",
         figure=fig21
+    ),
+        style={
+            "padding":"50px"
+        }
     ),
 dcc.Dropdown(
 
@@ -266,22 +283,34 @@ dcc.Dropdown(
         id="slider_histo",
         value=1,
         marks={
-            0: "2003 - T1",
-            len(df.columns[4:])-1: "2022 - T2"
+            #0: "2003 - T1",
+            #len(df.columns[4:])-1: "2022 - T2"
+            i:str(2003+i//4) for i in range(0,len(df.columns[4:])-1,4)
         },
         updatemode="drag",
     ),
 
+html.Br(),
 html.Div(children=f'''
                             Ce diagramme permet de comparer les zones d'emplois dans plusieurs régions en simultanés. L'axe des ordonées représente le nombre de zones d'emplois d'un région dans l'intervalle de chomage désigné.
-                            '''),
+                            On peut y séléctionner les régions voulues ainsi que l'année voulue.
+                            ''',  style={
+        "padding":"20px"
+}),
+html.Br(),
+html.Hr(),
 html.H2(
-     children="Evolution temporelle du taux de chomage dans une ville en fonction du temps"
+     children="Evolution temporelle du taux de chomage"
 ),
 
-    dcc.Graph(
+    html.Div
+        (children=dcc.Graph(
         id="timeline",
         figure=figTimeline
+    ),
+        style={
+            "padding":"50px"
+        }
     ),
     dcc.Dropdown(
         id="emplacement_dropdown",
@@ -295,18 +324,26 @@ html.H2(
         0, len(df.columns[4:])-1,
             id="slider",
             step=1,
-            marks=None,
+            marks={
+                i: str(2003 + i // 4) for i in range(0, len(df.columns[4:]) - 1, 4)
+            },
             #marks=
             #{i: str(year) for i, year in enumerate(df['Arbre Exploitation - Planté le'].unique())},
             value=[5,55],
-            tooltip={"placement": "bottom", "always_visible": True}
     ),
+    html.Br(),
     html.Div(children=f'''
                                 Ce diagramme permet de comparer le taux de chômage dans certaines villes. L'axe des abscisses représente l'intervalle de temps sur lequel on souhaite observer les données, réglable à l'aide du slider ci-dessous.
                                 L'axe des ordonnées représente le taux de chômage dans les villes (en %)
                                 Il est possible de choisir quelles villes voir à l'aide du menu en dessous
-                                '''),
-    ]
+                                ''',  style={
+        "padding":"20px"
+}),
+    ],
+    style={
+        "padding-left":"30px",
+        "padding-right":"30px"
+    }
 )
 
 """
@@ -388,7 +425,9 @@ def update_histo(dropdown_value,slider_value):
             range=[0,db[db["LIBREG"].isin(list_reg)][annee].max()+5]
     ).update_layout(
         bargap=0.35
-    )
+    ).update_yaxes(
+    title_text="Nombre de villes"
+)
 
 
 
