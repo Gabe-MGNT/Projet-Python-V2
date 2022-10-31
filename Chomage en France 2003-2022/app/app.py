@@ -1,5 +1,4 @@
 from dash import html
-
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -11,12 +10,22 @@ from dash import dcc, Output, Input
 import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
 
+"""
+Récupération des données depuis le fichier .xlsx en un DataFrame pandas
+"""
 exc=pd.ExcelFile("data/chomage-zone-t1-2003-t2-2022.xlsx")
 df=pd.read_excel(exc,"txcho_ze",skiprows=[0,1,2,3,4])
 
+"""
+Thème appliqué aux futures figures créées
+"""
 load_figure_template("simplex")
 
 
+"""
+Création d'une pie-chart comptant le nombre de relevés par régions
+Et formattage des données pour les afficher à l'intérieur
+"""
 pie_df=df["LIBREG"].value_counts()
 fig_pie_hole=px.pie(
     pie_df,
@@ -41,12 +50,13 @@ fig_pie_hole=px.pie(
     showlegend=False
 )
 
-fig2=px.histogram(
-    df,
-    x=["LIBREG"]
-)
-df["ZE2020"]=df["ZE2020"].apply(lambda x: str(x).rjust(4,'0') if len(str(x))<4 else x)
 
+"""
+Création du bar chart de l'évolution général du chomage, avec :
+    - Groupement des données par les régions
+    - Prise de la moyenne du chomage pour chaque région sur tous les relevés
+    - Transposition pour meilleur accès des données
+"""
 da = df.iloc[:,3:].groupby("LIBREG").mean()
 da = da.dropna(how = 'any')
 dat= da.T
@@ -67,10 +77,14 @@ figChomageParRegion = px.histogram(
     title_text="Dates de relevés"
 )
 
+
+"""
+Création d'un histogramme représentant la distribution du chomage dans certaine régions
+    - Récupération des colonnes contenant les régions et le relevés de chaques années
+"""
 db = df.iloc[:,3:]
 db = db.dropna(how = 'any')
 dbt= db.T
-
 fig21=px.bar(
     db[np.logical_or(db['LIBREG'] == "ILE DE FRANCE",db['LIBREG'] == "OCCITANIE") ],
     title="Répartitions des zones d'emplois de régions en fonction du chomage",
@@ -80,6 +94,13 @@ fig21=px.bar(
 )
 
 
+"""
+Création de la carte choroplèthe du taux de chomage par région, avec :
+    - Padding de 0 pour les codes de régions mal importés
+    - Chargement du fichier json contenant les données pour tracer
+    - Création de la carte en faisant le lien entre le code de région du DataFrame et le code de région du fichier JSON
+"""
+df["ZE2020"]=df["ZE2020"].apply(lambda x: str(x).rjust(4,'0') if len(str(x))<4 else x)
 fichierJson = open("data/ze2020_2022.json")
 geojson = json.load(fichierJson)
 figCarte = px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.ze2020", locations='ZE2020', color='2003-T1',
@@ -94,6 +115,9 @@ figCarte = px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.
                           )
 
 
+"""
+Création d'un diagramme ligne, de l'évolution temporelle du taux de chomage dans certaines régions
+"""
 figTimeline=px.line(
     x=pd.to_datetime(df.columns[5:]),
     markers=True,
@@ -102,7 +126,10 @@ figTimeline=px.line(
 
 )
 
-app=dash.Dash("TTTEEESSSSTT")
+"""
+Mise en place visuelle du dashboard
+"""
+app=dash.Dash("Lancement du dashboard")
 app.layout=html.Div(children=[
         html.H1(children="Le chomage en France",
                 id="titre",
@@ -278,6 +305,15 @@ html.H2(
     ]
 )
 
+"""
+Création des callback permettant la mise à jour des graphiques en fonction d'entrées
+"""
+
+"""
+Mise à jour de la carte chroplethe par la valeur d'un slider
+    - Selon la valeur du slider, se place dans la colonne des annes voulues
+    - Actualise la carte avec les nuvelles données
+"""
 @app.callback(
     Output(component_id="graphCarte",component_property="figure"),
     [Input(component_id="slider_carte",component_property="value")]
@@ -297,7 +333,10 @@ def update_carte(slider_value):
                            labels={'ZE2020':'Code zone d\'emploi:', '2003-T1':'Chomage par région (en %) '}
                           )
 
-
+"""
+Mise a jour de l'histogramme de la distribution du chomage dans certaines régions
+A l'aide des valeurs du 'DropDown Menu', ajout des régions séléctionnées dans le DataFrame séléctionné
+"""
 @app.callback(
     Output(component_id="graph21",component_property="figure"),
     [Input(component_id="dropdown_histo",component_property="value"),
@@ -338,6 +377,11 @@ def update_histo(dropdown_value,slider_value):
 
 
 
+"""
+Mise à jour du graphique de l'évolution temporelle du chomage dans certaines régions
+A l'aide de la valeur d'un slider et de celles d'un 'DropDown Menu', actualisation du DataFrrame
+utilisé pour contenir l'intervalle de dates voulues et les régions souhaitées
+"""
 @app.callback(
     [Output(component_id="timeline", component_property="figure")],
     [Input(component_id="slider",component_property="value"),
