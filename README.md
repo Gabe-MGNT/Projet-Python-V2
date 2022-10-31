@@ -29,11 +29,13 @@ Ainsi, nous ferons le lien entre ces 2 fichiers plus tard dans les scripts pytho
 
 ### Installation
 <p>Pour installer ce projet, il faut cloner le projet à l'aide de la commande</p>
+<br>
 <code>
 $ git clone URLProjet
 </code>
-
+<br>
 <p>Ensuite, il faut d'abord installer les packages additionnels requis contenus dans requirement.txt, avec la commande :</p>
+<br>
 <code>
 $ python -m pip install -r requirements.txt
 </code>

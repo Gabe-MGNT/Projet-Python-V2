@@ -10,6 +10,13 @@ import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
 
 """
+Fichier principal contenant la déclaration et création du DashBoard, en plus de récupérer les données et les traiter si nécesssaire.
+Contient aussi la création ainsi que la mise à jour de tous les graphiques visibles.
+"""
+
+
+
+"""
 Récupération des données depuis le fichier .xlsx en un DataFrame pandas
 Comme le fichier excel contient plusieurs pages, on utilise celle nommée 'txcho_ze', et on retire les 5 premières lignes ne contenant pas d'informations
 """
@@ -17,7 +24,7 @@ exc = pd.ExcelFile("data/chomage-zone-t1-2003-t2-2022.xlsx")
 df = pd.read_excel(exc, "txcho_ze", skiprows=[0, 1, 2, 3, 4])
 
 """
-Thème appliqué aux futures figures créées
+Thème graphique appliqué aux futures figures créées
 """
 load_figure_template("simplex")
 
@@ -35,7 +42,7 @@ fig_pie_hole = px.pie(
         "index": "Régions",
         "values": "Nombre de villes"
     },
-    title="Nombres de villes par régions (ou nombre de relevés par villes)",
+    title="Nombre de relevés par régions par trimestre",
 ).update_traces(
     textposition='inside',
     insidetextorientation='radial',
@@ -153,14 +160,14 @@ app.layout = html.Div(children=[
             ),
             html.Div(
                 children=[
-                    html.H3(children="Jeu de données INSEE"),
+                    html.H3(children="Provenance : jeu de données de l'INSEE"),
                     html.Hr(),
                     html.H4(
-                        "Le taux de chômage entre 2003 et 2022 dans les régions françaises"
+                        "Sujet : Le taux de chômage entre 2003 et 2022 dans les régions françaises"
                     ),
                     html.Br(),
                     html.P(
-                        "Ce Dashboard a pour but de montrer le chomage en France par zone d'emplois (ZE), et son évolution entre 2003 et 2022, par trimestre. Les chiffres pour les Drom-Com n'apparaissent qu'après 2014."
+                        "Description : Ce Dashboard a pour but de montrer le chomage en France par zone d'emplois (ZE), et son évolution entre 2003 et 2022, par trimestre. Les chiffres pour les Drom-Com n'apparaissent qu'après 2014."
                     )
 
                 ],
@@ -368,7 +375,10 @@ def update_carte(slider_value):
                                 mapbox_style="carto-positron",
                                 zoom=4, center={"lat": 46.000, "lon": 2.00},
                                 opacity=0.5,
-                                labels={'ZE2020': 'Code zone d\'emploi:'}
+                                labels={
+                                    'ZE2020': 'Code zone d\'emploi',
+                                    str(x):"Taux de chômage (en %) "
+                                }
                                 )
 
 
@@ -416,7 +426,11 @@ def update_histo(dropdown_value, slider_value):
         x=annee,
         title="Distribution du chômage des régions",
         barmode="group",
-        color="LIBREG"
+        color="LIBREG",
+        labels={
+            "LIBREG":"Région ",
+            str(annee):"Intervalle du taux de chômage "
+        },
     ).update_xaxes(
         range=[0, db[db["LIBREG"].isin(list_reg)][annee].max() + 5]
     ).update_layout(
