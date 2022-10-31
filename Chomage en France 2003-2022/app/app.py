@@ -119,10 +119,10 @@ figCarte = px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.
 Création d'un diagramme ligne, représentant l'évolution temporelle du taux de chomage dans certaines régions
 """
 figTimeline=px.line(
-    x=pd.to_datetime(df.columns[5:]),
+    x=pd.to_datetime(df.columns[4:]),
     markers=True,
-    y=[df[df["LIBZE2020"]=="Avignon"].iloc[:,5:].iloc[0],
-       df[df["LIBZE2020"]=="Paris"].iloc[:,5:].iloc[0]],
+    y=[df[df["LIBZE2020"]=="Avignon"].iloc[:,4:].iloc[0],
+       df[df["LIBZE2020"]=="Paris"].iloc[:,4:].iloc[0]],
 
 )
 
@@ -199,6 +199,9 @@ html.Div(children=f'''
 html.H2(
         children="Carte du chômage en france"
 ),
+    html.Div(
+        children="L'actualisation de la carte prend du temps au vue de sa complexité, il faut donc attendre un peu avant de voir les modifications visuellement"
+    ),
 dcc.Graph(
         id="graphCarte",
         figure=figCarte,
@@ -208,12 +211,12 @@ dcc.Graph(
             }
         )
 ),
-dcc.RangeSlider(
-        0, len(df.columns[5:]),
+dcc.Slider(
+        0, len(df.columns[4:])-1,
             id="slider_carte",
             step=1,
             marks=None,
-            value=[76],
+            value=76,
             tooltip={"placement": "bottom", "always_visible": True}
 ),
 html.Div(children=f'''
@@ -258,13 +261,13 @@ dcc.Dropdown(
     ),
 
     dcc.Slider(
-        1, len(df.columns[5:]),
+        0, len(df.columns[4:])-1,
         step=1,
         id="slider_histo",
         value=1,
         marks={
-            1: "2003",
-            len(df.columns[5:]): "2022"
+            0: "2003 - T1",
+            len(df.columns[4:])-1: "2022 - T2"
         },
         updatemode="drag",
     ),
@@ -289,13 +292,13 @@ html.H2(
         value=["Alençon","Paris"]
     ),
     dcc.RangeSlider(
-        0, len(df.columns[5:])-1,
+        0, len(df.columns[4:])-1,
             id="slider",
             step=1,
             marks=None,
             #marks=
             #{i: str(year) for i, year in enumerate(df['Arbre Exploitation - Planté le'].unique())},
-            value=[5,76],
+            value=[5,55],
             tooltip={"placement": "bottom", "always_visible": True}
     ),
     html.Div(children=f'''
@@ -323,7 +326,7 @@ def update_carte(slider_value):
 
     #Récupère la date selon la valeur du slider
     list_temps = df.columns
-    x = list_temps[slider_value][0]
+    x = list_temps[slider_value+4]
 
     #Créer la carte choropleth en conséquence
     return px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.ze2020", locations='ZE2020', color=str(x),
@@ -334,7 +337,7 @@ def update_carte(slider_value):
                            mapbox_style="carto-positron",
                            zoom=4, center = {"lat": 46.000, "lon": 2.00},
                            opacity=0.5,
-                           labels={'ZE2020':'Code zone d\'emploi:', '2003-T1':'Chomage par région (en %) '}
+                           labels={'ZE2020':'Code zone d\'emploi:'}
                           )
 
 """
@@ -354,7 +357,7 @@ def update_histo(dropdown_value,slider_value):
         list_reg.append(region)
 
     #Création du dataframe contenant les villes, et la date voulue grâce à la valeur du slider
-    annee=db[db["LIBREG"].isin(list_reg)].columns[slider_value]
+    annee=db[db["LIBREG"].isin(list_reg)].columns[1+slider_value]
 
     #Gère le cas où rien n'est demandé
     #Affiche donc un graph avec un message d'erreur
@@ -406,7 +409,7 @@ def update_figure_timeline(input_value,drop_input):
     #Récupère les lignes du dataframe original contenant villes contenues dans le menu dropdown en tenant compte des années fournies par le slider
     ordonnee=[]
     for ville in drop_input:
-        ordonnee.append(df[df["LIBZE2020"]==ville].iloc[:,5+input_value[0]:5+input_value[1]+1].iloc[0])
+        ordonnee.append(df[df["LIBZE2020"]==ville].iloc[:,4+input_value[0]:4+input_value[1]+1].iloc[0])
 
     #Création d'un dataframe contenant les différentes lignes de données
     #Formattage du nom des index et des colonnes
@@ -444,7 +447,7 @@ def update_figure_timeline(input_value,drop_input):
             x=data_f.index,
             y=drop_input,
             markers=True,
-            title=f'Evolution du taux de chômage entre {(df.columns[5+input_value[0]]).split(" ")[0]} et {(df.columns[5+input_value[1]]).split(" ")[0]}',
+            title=f'Evolution du taux de chômage entre {(df.columns[4+input_value[0]]).split(" ")[0]} et {(df.columns[4+input_value[1]]).split(" ")[0]}',
             labels={
                 "x": "Années de relevé ",
                 "value": "Taux de chômage (en %) ",
