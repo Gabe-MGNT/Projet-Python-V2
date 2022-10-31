@@ -12,6 +12,7 @@ from dash_bootstrap_templates import load_figure_template
 
 """
 Récupération des données depuis le fichier .xlsx en un DataFrame pandas
+Comme le fichier excel contient plusieurs, on utilise celle nommée 'txcho_ze'
 """
 exc=pd.ExcelFile("data/chomage-zone-t1-2003-t2-2022.xlsx")
 df=pd.read_excel(exc,"txcho_ze",skiprows=[0,1,2,3,4])
@@ -36,7 +37,6 @@ fig_pie_hole=px.pie(
         "index":"Régions",
         "values":"Nombre de villes"
     },
-    #color_discrete_sequence=px.colors.sequential.Oranges,
     title="Nombres de villes par régions (ou relevés par années)",
 ).update_traces(
     textposition='inside',
@@ -60,15 +60,15 @@ Création du bar chart de l'évolution général du chomage, avec :
 da = df.iloc[:,3:].groupby("LIBREG").mean()
 da = da.dropna(how = 'any')
 dat= da.T
-figChomageParRegion = px.histogram(
+figChomageParRegion = px.bar(
     dat,
-    title="Evolution du chômage par région",
+    title="Evolution du chômage moyen par région",
     x=dat.index,
     y=dat.columns,
     labels={
         "LIBREG":"Région",
         "index":"Date",
-        "sum of value":"moyenne"
+        "value":"Moyenne (en %)"
     },
 
 ).update_yaxes(
@@ -116,7 +116,7 @@ figCarte = px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.
 
 
 """
-Création d'un diagramme ligne, de l'évolution temporelle du taux de chomage dans certaines régions
+Création d'un diagramme ligne, représentant l'évolution temporelle du taux de chomage dans certaines régions
 """
 figTimeline=px.line(
     x=pd.to_datetime(df.columns[5:]),
@@ -131,7 +131,7 @@ Mise en place visuelle du dashboard
 """
 app=dash.Dash("Lancement du dashboard")
 app.layout=html.Div(children=[
-        html.H1(children="Le chomage en France",
+        html.H1(children="Le chomage en France entre 2003 et 2022",
                 id="titre",
                 style={
                     'textAlign': 'center',
@@ -217,8 +217,8 @@ dcc.RangeSlider(
             tooltip={"placement": "bottom", "always_visible": True}
 ),
 html.Div(children=f'''
-                            Les zones les plus touchées par le chomage sont le nord est, région anciennement industrialisées qui peinent a réussir leurs transition dans l'économie tertiaire, et le sud ouest, très attractif, n'arrive pas a suirve l'arrivée massive de population active attiré par le tourisme.
-                            \n Il est possible de faire évoluer dans le temps la carte avec le slider Ci-dessus.
+                            Les zones les plus touchées par le chomage sont le nord est, région anciennement industrialisées qui peinent a réussir leurs transition dans l'économie tertiaire, et le sud ouest, très attractif, n'arrive pas a suivre l'arrivée massive de population active attiré par le tourisme.
+                            \n Il est possible de faire évoluer dans le temps la carte avec le slider ci-dessous.
                             '''),
 
 html.H2(
@@ -235,12 +235,12 @@ children=dcc.Graph(
         }
     ),
 html.Div(children=f'''
-                            Ce diagramme permet de visualiser l'évolution du chommage dans chaque région.
-                            \n Glissez votre souris sur les courbes pour afficher les informations prévises
+                            Ce diagramme permet de visualiser l'évolution du chommage dans chaque région, mais aussi de manière générale.
+                            \n De plus amples informations peuvent être obtenues en glissant votre souris sur les barres pour afficher les informations.
                             '''),
 
 html.H2(
-        children="Pourcentage de Chomage a l'intérieur d'une région"
+        children="Distribution du taux de chômage de certaines régions"
 ),
 dcc.Graph(
         id="graph21",
@@ -270,10 +270,10 @@ dcc.Dropdown(
     ),
 
 html.Div(children=f'''
-                            Ce diagame permet de comparer les zones d'emplois dans plusieurs régions en simultanés. L'axe des ordonées repsrésente le nombre de zone d'emploi d'un région dans l'intervalle de chomage désigné.
+                            Ce diagramme permet de comparer les zones d'emplois dans plusieurs régions en simultanés. L'axe des ordonées représente le nombre de zones d'emplois d'un région dans l'intervalle de chomage désigné.
                             '''),
 html.H2(
-     children="Répartition du nombre de zone d'emplois par régions"
+     children="Evolution temporelle du taux de chomage dans une ville en fonction du temps"
 ),
 
     dcc.Graph(
@@ -298,10 +298,11 @@ html.H2(
             value=[5,76],
             tooltip={"placement": "bottom", "always_visible": True}
     ),
-    html.H1(
-        id="selec_arrond",
-        children=""
-    ),
+    html.Div(children=f'''
+                                Ce diagramme permet de comparer le taux de chômage dans certaines villes. L'axe des abscisses représente l'intervalle de temps sur lequel on souhaite observer les données, réglable à l'aide du slider ci-dessous.
+                                L'axe des ordonnées représente le taux de chômage dans les villes (en %)
+                                Il est possible de choisir quelles villes voir à l'aide du menu en dessous
+                                '''),
     ]
 )
 
@@ -319,9 +320,12 @@ Mise à jour de la carte chroplethe par la valeur d'un slider
     [Input(component_id="slider_carte",component_property="value")]
 )
 def update_carte(slider_value):
+
+    #Récupère la date selon la valeur du slider
     list_temps = df.columns
     x = list_temps[slider_value][0]
 
+    #Créer la carte choropleth en conséquence
     return px.choropleth_mapbox(df, geojson=geojson, featureidkey = "properties.ze2020", locations='ZE2020', color=str(x),
                            title="Carte du chômage en France par zone d'emplois",
                            hover_name = 'LIBZE2020',
@@ -343,11 +347,17 @@ A l'aide des valeurs du 'DropDown Menu', ajout des régions séléctionnées dan
      Input(component_id="slider_histo",component_property="value"),]
 )
 def update_histo(dropdown_value,slider_value):
+
+    #Récupération de toutes les régions contenues dans le menu dropdown
     list_reg=[]
     for region in dropdown_value:
         list_reg.append(region)
 
+    #Création du dataframe contenant les villes, et la date voulue grâce à la valeur du slider
     annee=db[db["LIBREG"].isin(list_reg)].columns[slider_value]
+
+    #Gère le cas où rien n'est demandé
+    #Affiche donc un graph avec un message d'erreur
     if list_reg==[] or db[db["LIBREG"].isin(list_reg)]["2003-T1"].empty:
          return px.histogram(
              db[db["LIBREG"].isin(list_reg)],
@@ -364,9 +374,11 @@ def update_histo(dropdown_value,slider_value):
         )
          )
 
+    #Sinon retourne le graph avec les données
     return px.histogram(
             db[db["LIBREG"].isin(list_reg)],
             x=annee,
+            title="Distribution du chômage des régions",
             barmode="group",
             color="LIBREG"
         ).update_xaxes(
@@ -391,18 +403,21 @@ Input(component_id="emplacement_dropdown",component_property="value")
 )
 def update_figure_timeline(input_value,drop_input):
 
+    #Récupère les lignes du dataframe original contenant villes contenues dans le menu dropdown en tenant compte des années fournies par le slider
     ordonnee=[]
     for ville in drop_input:
         ordonnee.append(df[df["LIBZE2020"]==ville].iloc[:,5+input_value[0]:5+input_value[1]+1].iloc[0])
-    #print(ordonnee)
 
+    #Création d'un dataframe contenant les différentes lignes de données
+    #Formattage du nom des index et des colonnes
     data_f=pd.DataFrame(ordonnee)
     data_f=data_f.T
-
     data_f.index.name="Date"
     data_f.columns=drop_input
 
 
+    #Gère le cas où les données entrées sont vides
+    #Renvoie alors un graph avec un message d'erreur
     if drop_input==[] or data_f.empty:
         return [
             px.line(
@@ -421,6 +436,7 @@ def update_figure_timeline(input_value,drop_input):
             f'Pas de villes renseingées'
         ]
 
+    #Sinon renvoie un graph avec les données voulues
     else:
         return [
             px.line(
@@ -428,14 +444,23 @@ def update_figure_timeline(input_value,drop_input):
             x=data_f.index,
             y=drop_input,
             markers=True,
-            title=f'Evolution entre {(df.columns[5+input_value[0]]).split(" ")[0]} et {(df.columns[5+input_value[1]]).split(" ")[0]}',
+            title=f'Evolution du taux de chômage entre {(df.columns[5+input_value[0]]).split(" ")[0]} et {(df.columns[5+input_value[1]]).split(" ")[0]}',
             labels={
                 "x": "Années de relevé ",
-                "value": "Taux d'emploi (en %) ",
+                "value": "Taux de chômage (en %) ",
                 "variable":"Ville "
             }
 
         ).update_traces(textposition="top center")
     ]
-app.run_server(debug=True)
+
+
+def get_dashboard():
+    """
+    Retourne le dashboard créé pour pouvoir être éxécuté de facon externe à ce fichier
+
+        :returns
+            app (Dash) : Un objet Dash prêt à être éxécuté
+    """
+    return app
 
