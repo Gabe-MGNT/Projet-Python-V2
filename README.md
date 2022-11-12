@@ -4,8 +4,9 @@
 ---
 # Sommaire :
 1. [Guide Utilisateur ](#user)
-2. [Analyse résultat ](#analyse)
-3. [Guide développeur ](#dev)
+2. [Guide développeur ](#dev)
+3. [Analyse résultat ](#analyse)
+
 ---
 <br>
 
@@ -47,29 +48,25 @@ $ python -m pip install -r requirements.txt
 <code>
 $ python get_data.py
 </code>
+<p>Qui récupèrera le fichier en .csv et celui en .json</p>
 <br>
-<p>Une fois le projet cloné, et les packages requis installé, le projet s'éxécute tel que :</p>
+<p>Une fois le projet cloné, les packages requis installés, les données récupérées, le projet s'éxécute tel que :</p>
 <code>
 $ python main.py
 </code>
-
 <br>
+<p>Et le dashboard peut s'afficher en cliquant sur le lien d'hébergement local.</p>
+
+
 
 ### Utilisation
 <p>Le projet vous permet d'intéragir avec différents graphiques.</p>
+<p>Il y a des sliders permettant de changer l'intervalle temporel, l'année et des menus pour choisir les pays dont l'on souhaite visionner les données.</p>
 
 ---
 
-<a name="analyse"></a>
-# Analyse des résultats
-<p>Le chomage de manière générale semble n'avoir fait qu'augmenter jusqu'à 2018 pour redescendre en 2020.</p>
-<p>L'arrivée de la crise du COVID en 2021 à bousculer cet équilibre.</p>
-
-<p>De plus la carte permet de voir que les régions les plus affectées en temps normal se situe en dehors de la couronne parisienne</p>
-<p>Par contre, lors du COVID c'est finalement cette couronne parisienne qui a été le plus touché.</p>
-
----
 <a name="dev"></a>
+
 # Guide développeur
 
 <p>
@@ -84,6 +81,25 @@ Le code du projet est organisé tel que :
 <p>L'ajout du graphique dans le dashbaord visuel, se fait dans la déclaration du layout </p>
 <p>Et si un graphique nécessite une mise à jour, cela se fait donc à la fin dans les callbacks.</p>
 
+<p>main.py reste inchangé et permet juste l'exécution du dashboard depuis la racine du projet.</p>
+
+
+
+<a name="analyse"></a>
+# Analyse des résultats
+
+<p>Ce dashboard a pour but d'exploiter les données sur le chomage en France et d'en tirer une analyse.</p>
+
+<p>Le chomage de manière générale semble n'avoir fait qu'augmenter jusqu'à 2018 pour redescendre en 2020, qui semblait repartir sur une bonne lancée, mais l'arrivée de la crise du COVID en 2021 à bousculer cet équilibre.</p>
+<p>A ce moment l'économie française est au ralenti, et beaucoup de personnes ne peuvent plus travailler, c'est pour cela qu'on observe une augmentation du chomage en général à ce moment-là, et toute la France ressent les effets de cette crise.</p>
+
+<p>Ensuite la carte nous permet de voir que les régions les plus affectées en temps normal se situe en dehors de la couronne parisienne, et que donc le chômage semble être plus élevé dans le reste de la France et principalement dans le centre, le Sud et le Nord.</p>
+<p>Par contre, lors du COVID c'est finalement cette couronne parisienne qui a été le plus touché, de par la concentration de population qui y est installé, c'était donc la région la plus fragile à de tels bousculements.</p>
+
+<p>Et en se penchant sur l'évolution temporelle des relevés, grâce aux tendances on peut y distinguer les plus gros chocs des ces dernières années : la crise 2008 et la crise Covid.</p>
+<p>Mais aussi voir l'entrée en vigueur de la loi travail en 2015, qui montre avoir eu un certains impacts sur un chômage dont la France n'arrivait pas à se débarrasser depuis la crise de 2008.</p>
+
+---
 
 
 

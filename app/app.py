@@ -294,6 +294,8 @@ app.layout = html.Div(children=[
     html.Div(children=f'''
                             Ce diagramme permet de comparer les zones d'emplois dans plusieurs régions en simultanés. L'axe des ordonées représente le nombre de zones d'emplois d'un région dans l'intervalle de chomage désigné.
                             On peut y séléctionner les régions voulues ainsi que l'année voulue.
+                            Ce graphique permet d'observer la tendance que la région Ile-De-France semble moins affectée par le chômage avec es taux plus faibles que les autres régions.
+                            Les régions situées dans le Sud semble avoir des répartitions plus hautes en terme de taux de chômage.
                             ''', style={
         "padding": "20px"
     }),
@@ -335,7 +337,11 @@ app.layout = html.Div(children=[
     html.Div(children=f'''
                                 Ce diagramme permet de comparer le taux de chômage dans certaines villes. L'axe des abscisses représente l'intervalle de temps sur lequel on souhaite observer les données, réglable à l'aide du slider ci-dessous.
                                 L'axe des ordonnées représente le taux de chômage dans les villes (en %)
-                                Il est possible de choisir quelles villes voir à l'aide du menu en dessous
+                                Il est possible de choisir quelles villes voir à l'aide du menu en dessous.
+                                Ce graphique permet de voir les différents impacts qu'ont eu la crise de 2008 et la crise Covid sur le chômage sur certaines villes françaises et la France en général.
+                                Pour certaines villes, 2015 mest marquée par un fort taux de chômage (+10%), mais aussi l'adoptinon de la loi El-Khomri qui montre avoir des gros effets en général après 2015.
+                                Ensuite, en choisissant correctement les villes, on peut voir que finalement les villes autour de Paris semble avoir un taux de chômage plus faibles que les autres.
+                                Alors que les villes du Sud, région Centre, et au Nord semble avoir des taux de chômages plus élevés en général.
                                 ''', style={
         "padding": "20px"
     }),
